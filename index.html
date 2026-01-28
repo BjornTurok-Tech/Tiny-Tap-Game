@@ -271,6 +271,27 @@
   </div>
 
   <div id="toast"></div>
+  
+  <div id="confirmOverlay" style="
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.65); z-index:99999; padding:16px;">
+  <div style="
+    width:min(92vw,380px); background:#1b1b1b; border-radius:18px; padding:16px;
+    box-shadow:0 18px 50px rgba(0,0,0,0.6); text-align:left;">
+    <div style="font-size:18px; font-weight:800; margin-bottom:8px;">Prestige?</div>
+    <div id="confirmText" style="font-size:14px; color:#ddd; line-height:1.35; margin-bottom:12px;">
+      <!-- filled by JS -->
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button id="confirmCancel" style="
+        flex:1; padding:12px; border-radius:14px; border:none;
+        background:#2b2b2b; color:#fff; font-size:16px;">Cancel</button>
+      <button id="confirmOk" style="
+        flex:1; padding:12px; border-radius:14px; border:none;
+        background:#f5f5f5; color:#111; font-size:16px; font-weight:800;">Prestige now</button>
+    </div>
+  </div>
+  </div>
 
   <script>
 
@@ -344,7 +365,32 @@ const critMultCostEl = document.getElementById("critMultCost");
 
 const tierLabel = document.getElementById("tierLabel");
 const nextLabel = document.getElementById("nextLabel");
+const confirmOverlay = document.getElementById("confirmOverlay");
+const confirmText = document.getElementById("confirmText");
+const confirmCancel = document.getElementById("confirmCancel");
+const confirmOk = document.getElementById("confirmOk");
 
+let pendingConfirm = null;
+
+function openConfirm(message, onYes) {
+  pendingConfirm = onYes;
+  confirmText.textContent = message;
+  confirmOverlay.style.display = "flex";
+}
+
+function closeConfirm() {
+  confirmOverlay.style.display = "none";
+  pendingConfirm = null;
+}
+
+confirmCancel.addEventListener("click", closeConfirm);
+confirmOverlay.addEventListener("click", (e) => {
+  if (e.target === confirmOverlay) closeConfirm();
+});
+confirmOk.addEventListener("click", () => {
+  if (pendingConfirm) pendingConfirm();
+  closeConfirm();
+});
     // ======================
     // UI helpers
     // ======================
@@ -527,27 +573,43 @@ function buyCritMult() {
     }
 
     function prestige() {
-      if (coins < 100) {
-        showToast("Need 100 coins");
-        return;
-      }
+  if (coins < 100) {
+    showToast("Need 100 coins");
+    return;
+  }
 
+  const nextPoints = prestigePoints + 1;
+  const nextBonus = 1 + nextPoints * 0.1;
+
+  openConfirm(
+    "Reset coins, tap power, and auto income.\n" +
+    "You will gain +1 Prestige Point.\n" +
+    "New bonus: x" + nextBonus.toFixed(2),
+    () => {
+      // DO THE PRESTIGE FOR REAL
       prestigePoints += 1;
       prestigeBonus = 1 + prestigePoints * 0.1;
 
+      // RESET SECTION
       coins = 0;
       coinsPerTap = 1;
       coinsPerSecond = 0;
       upgradeCost = 10;
-      megaCost = 60;
-critChance = 0;
-critCost = 40;
-critMult = 1.5;
-critMultCost = 75;
+
+      // If you added these systems, keep these resets too:
+      if (typeof megaCost !== "undefined") {
+        megaCost = 60;
+        critChance = 0;
+        critCost = 40;
+        critMult = 1.5;
+        critMultCost = 75;
+      }
 
       showToast("Prestige! Bonus up");
       updateUI();
       saveGame();
+    }
+  );
     }
 
     // Auto income tick
