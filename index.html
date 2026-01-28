@@ -1,111 +1,223 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Tiny Tap Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+  <!-- Mobile "app feel" -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#111111">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
 
   <style>
-    #adBox {
-      width: 90vw;
-      max-width: 360px;
-      height: 60px;
-      background: #222;
-      color: #aaa;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 15px;
-      border-radius: 10px;
-      font-size: 14px;
+    :root{
+      --bg:#111;
+      --panel:#1a1a1a;
+      --btn:#f5f5f5;
+      --btnText:#111;
+      --muted:#aaa;
+      --danger:#ff6b6b;
+      --ok:#9cff9c;
     }
 
-    * {
-      box-sizing: border-box;
-      user-select: none;
-    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
 
-    body {
+    html, body {
       margin: 0;
-      background: #111;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
       color: white;
       font-family: Arial, sans-serif;
+
+      /* stops weird scroll/touch behaviors */
+      overscroll-behavior: none;
+      touch-action: manipulation;
+    }
+
+    body{
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
       text-align: center;
+      padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) 12px;
     }
 
-    .stats {
-      margin-bottom: 20px;
-      font-size: 18px;
-    }
+    h1 { margin: 10px 0 6px; font-size: 44px; }
 
-    .tap-btn {
-      width: 80vw;
-      max-width: 320px;
-      height: 80vw;
-      max-height: 320px;
-      font-size: 40px;
-      border-radius: 20px;
-      border: none;
-      background: #f5f5f5;
-      color: #111;
+    .stats { margin: 6px 0 16px; font-size: 18px; line-height: 1.25; }
+    .stats .row { margin: 2px 0; }
 
-      /* mobile touch fixes */
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
+    .tap-wrap{
       position: relative;
-      z-index: 10;
+      width: min(80vw, 320px);
+      height: min(80vw, 320px);
+      margin: 4px 0 10px;
     }
 
-    .shop button {
-      width: 90vw;
-      max-width: 360px;
+    .tap-btn{
+      width: 100%;
+      height: 100%;
+      font-size: 44px;
+      border-radius: 24px;
+      border: none;
+      background: var(--btn);
+      color: var(--btnText);
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      touch-action: manipulation;
+      transform: translateZ(0);
+      transition: transform 0.06s ease;
+    }
+
+    /* tap "pop" */
+    .tap-btn.pressed{
+      transform: scale(0.98);
+    }
+
+    /* floating +coins */
+    .float {
+      position: absolute;
+      left: 50%;
+      top: 55%;
+      transform: translate(-50%, -50%);
+      font-weight: 800;
+      font-size: 26px;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 3;
+      text-shadow: 0 6px 18px rgba(0,0,0,0.55);
+      animation: floatUp 0.65s ease-out forwards;
+    }
+
+    @keyframes floatUp{
+      0% { opacity: 0; transform: translate(-50%, -10%) scale(0.98); }
+      15% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -70%) scale(1.05); }
+    }
+
+    #adBox{
+      width: min(90vw, 360px);
+      height: 60px;
+      background: #222;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 10px 0 12px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    .shop{
+      width: min(90vw, 360px);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .shop button{
+      width: 100%;
       font-size: 22px;
       padding: 15px;
-      margin: 8px 0;
-      border-radius: 12px;
+      border-radius: 14px;
       border: none;
+      background: var(--btn);
+      color: var(--btnText);
+      box-shadow: 0 10px 26px rgba(0,0,0,0.35);
+    }
+
+    .shop button:disabled{
+      opacity: 0.45;
+      filter: grayscale(0.2);
+    }
+
+    /* small message "toast" */
+    #toast{
+      position: fixed;
+      left: 50%;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.82);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      z-index: 9999;
+      max-width: 92vw;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-6px);
+    }
+
+    /* install button (shows only if install is available) */
+    #installBtn{
+      display:none;
+      background:#2b2b2b;
+      color:#fff;
     }
   </style>
 </head>
 
 <body>
-
   <h1>Tiny Tap Game</h1>
 
   <div class="stats">
-    <div>Coins: <span id="count">0</span></div>
-    <div>Coins per tap: <span id="power">1</span></div>
-    <div>Coins per second: <span id="cps">0</span></div>
-    <div>Prestige Points: <span id="prestige">0</span></div>
+    <div class="row">Coins: <span id="count">0</span></div>
+    <div class="row">Coins per tap: <span id="power">1</span></div>
+    <div class="row">Coins per second: <span id="cps">0</span></div>
+    <div class="row">Prestige Points: <span id="prestige">0</span></div>
   </div>
 
-  <button id="tapBtn" class="tap-btn" type="button">TAP</button>
+  <div class="tap-wrap" id="tapWrap">
+    <!-- onclick is the most reliable on mobile -->
+    <button id="tapBtn" class="tap-btn" type="button" onclick="tap()">TAP</button>
+  </div>
 
   <div id="adBox">Ad loading…</div>
 
   <div class="shop">
-    <button onclick="buyUpgrade()">
+    <button id="upgradeBtn" onclick="buyUpgrade()">
       Upgrade Tap (<span id="upgradeCost">10</span> coins)
     </button>
 
-    <button onclick="buyAuto()">
+    <button id="autoBtn" onclick="buyAuto()">
       Auto Income (+1/sec) (25 coins)
     </button>
 
-    <button onclick="prestige()">
+    <button id="prestigeBtn" onclick="prestige()">
       Prestige (Reset for +1 bonus)
     </button>
 
-    <button onclick="watchAd()">
+    <button id="adBtn" onclick="watchAd()">
       Watch Ad → Get Bonus Coins
+    </button>
+
+    <button id="installBtn" type="button">
+      Install App
     </button>
   </div>
 
+  <div id="toast"></div>
+
   <script>
+    // ======================
+    // Game state
+    // ======================
     let coins = 0;
     let coinsPerTap = 1;
     let coinsPerSecond = 0;
@@ -113,16 +225,66 @@
     let prestigePoints = 0;
     let prestigeBonus = 1;
 
+    // ======================
+    // Elements
+    // ======================
     const tapBtn = document.getElementById("tapBtn");
+    const tapWrap = document.getElementById("tapWrap");
 
-    function updateUI() {
-      document.getElementById("count").innerText = coins;
-      document.getElementById("power").innerText = coinsPerTap;
-      document.getElementById("cps").innerText = coinsPerSecond;
-      document.getElementById("upgradeCost").innerText = upgradeCost;
-      document.getElementById("prestige").innerText = prestigePoints;
+    const countEl = document.getElementById("count");
+    const powerEl = document.getElementById("power");
+    const cpsEl = document.getElementById("cps");
+    const prestigeEl = document.getElementById("prestige");
+    const upgradeCostEl = document.getElementById("upgradeCost");
+
+    const upgradeBtn = document.getElementById("upgradeBtn");
+    const autoBtn = document.getElementById("autoBtn");
+    const prestigeBtn = document.getElementById("prestigeBtn");
+    const adBox = document.getElementById("adBox");
+    const toast = document.getElementById("toast");
+
+    // ======================
+    // UI helpers
+    // ======================
+    let toastTimer = null;
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>toast.classList.remove("show"), 1100);
     }
 
+    function floatText(text){
+      const el = document.createElement("div");
+      el.className = "float";
+      el.textContent = text;
+      tapWrap.appendChild(el);
+      el.addEventListener("animationend", ()=> el.remove());
+    }
+
+    function pressAnim(){
+      tapBtn.classList.add("pressed");
+      setTimeout(()=> tapBtn.classList.remove("pressed"), 70);
+    }
+
+    function updateButtons(){
+      upgradeBtn.disabled = coins < upgradeCost;
+      autoBtn.disabled = coins < 25;
+      prestigeBtn.disabled = coins < 100;
+    }
+
+    function updateUI() {
+      countEl.textContent = coins;
+      powerEl.textContent = coinsPerTap;
+      cpsEl.textContent = coinsPerSecond;
+      upgradeCostEl.textContent = upgradeCost;
+      prestigeEl.textContent = prestigePoints;
+      updateButtons();
+    }
+
+    // ======================
+    // Save / load
+    // ======================
     function saveGame() {
       localStorage.setItem("coins", coins);
       localStorage.setItem("coinsPerTap", coinsPerTap);
@@ -133,7 +295,7 @@
     }
 
     function loadGame() {
-      let lastTime = localStorage.getItem("lastTime");
+      const lastTime = localStorage.getItem("lastTime");
 
       coins = parseInt(localStorage.getItem("coins")) || 0;
       coinsPerTap = parseInt(localStorage.getItem("coinsPerTap")) || 1;
@@ -144,63 +306,61 @@
       prestigeBonus = 1 + prestigePoints * 0.1;
 
       if (lastTime) {
-        let secondsAway = Math.floor((Date.now() - lastTime) / 1000);
-        let offlineCoins = secondsAway * coinsPerSecond;
-        coins += offlineCoins;
-
+        const secondsAway = Math.floor((Date.now() - lastTime) / 1000);
+        const offlineCoins = secondsAway * coinsPerSecond;
         if (offlineCoins > 0) {
-          alert("You earned " + offlineCoins + " coins while away!");
+          coins += offlineCoins;
+          showToast("Offline: +" + offlineCoins + " coins");
         }
       }
 
       updateUI();
     }
 
+    // ======================
+    // Gameplay
+    // ======================
     function tap() {
-      coins += Math.floor(coinsPerTap * prestigeBonus);
+      const gained = Math.floor(coinsPerTap * prestigeBonus);
+      coins += gained;
+
+      pressAnim();
+      floatText("+" + gained);
+
       updateUI();
       saveGame();
     }
 
-    // Make tapping work on mobile + desktop
-    function doTap(e) {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      tap();
-    }
-
-    tapBtn.addEventListener("pointerdown", doTap, { passive: false });
-    tapBtn.addEventListener("touchstart", doTap, { passive: false });
-    tapBtn.addEventListener("click", doTap);
-
     function buyUpgrade() {
-      if (coins >= upgradeCost) {
-        coins -= upgradeCost;
-        coinsPerTap += 1;
-        upgradeCost += 10;
-        updateUI();
-        saveGame();
-      } else {
-        alert("Not enough coins!");
+      if (coins < upgradeCost) {
+        showToast("Need " + upgradeCost + " coins");
+        return;
       }
+      coins -= upgradeCost;
+      coinsPerTap += 1;
+      upgradeCost += 10;
+
+      showToast("Tap power +1");
+      updateUI();
+      saveGame();
     }
 
     function buyAuto() {
-      if (coins >= 25) {
-        coins -= 25;
-        coinsPerSecond += 1;
-        updateUI();
-        saveGame();
-      } else {
-        alert("Not enough coins!");
+      if (coins < 25) {
+        showToast("Need 25 coins");
+        return;
       }
+      coins -= 25;
+      coinsPerSecond += 1;
+
+      showToast("+1 coin/sec");
+      updateUI();
+      saveGame();
     }
 
     function prestige() {
       if (coins < 100) {
-        alert("You need at least 100 coins to prestige!");
+        showToast("Need 100 coins");
         return;
       }
 
@@ -212,40 +372,64 @@
       coinsPerSecond = 0;
       upgradeCost = 10;
 
+      showToast("Prestige! Bonus up");
       updateUI();
       saveGame();
-
-      alert("Prestige complete! Bonus increased.");
     }
 
+    // Auto income tick
     setInterval(() => {
+      if (coinsPerSecond <= 0) return;
       coins += Math.floor(coinsPerSecond * prestigeBonus);
       updateUI();
       saveGame();
     }, 1000);
 
+    // Fake ad refresh
     setInterval(() => {
-      document.getElementById("adBox").innerText = "Ad refreshed";
+      adBox.textContent = "Ad refreshed";
     }, 15000);
 
     function watchAd() {
-      alert("Watching ad...");
+      showToast("Watching ad…");
 
       setTimeout(() => {
         let reward = coinsPerSecond * 30 + coinsPerTap * 10;
         if (reward < 10) reward = 10;
 
         coins += reward;
+        showToast("Ad reward: +" + reward);
         updateUI();
         saveGame();
-
-        alert("Ad finished! You earned " + reward + " coins.");
-      }, 3000);
+      }, 2500);
     }
 
-    // Load saved game as soon as the page opens
+    // ======================
+    // PWA: service worker + install button
+    // ======================
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(()=>{});
+    }
+
+    let deferredPrompt = null;
+    const installBtn = document.getElementById("installBtn");
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = "block";
+    });
+
+    installBtn.addEventListener("click", async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.style.display = "none";
+    });
+
+    // Start
     loadGame();
   </script>
-
 </body>
 </html>
