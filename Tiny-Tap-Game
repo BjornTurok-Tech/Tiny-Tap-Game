@@ -1,1 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tiny Tap Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
+  <style>
+  #adBox {
+  width: 90vw;
+  max-width: 360px;
+  height: 60px;
+  background: #222;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+  
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    .stats {
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+
+    .tap-btn {
+      width: 80vw;
+      max-width: 320px;
+      height: 80vw;
+      max-height: 320px;
+      font-size: 40px;
+      border-radius: 20px;
+      border: none;
+      background: #f5f5f5;
+      color: #000;
+      margin-bottom: 20px;
+    }
+
+    .shop button {
+      width: 90vw;
+      max-width: 360px;
+      font-size: 22px;
+      padding: 15px;
+      margin: 8px 0;
+      border-radius: 12px;
+      border: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Tiny Tap Game</h1>
+
+<div class="stats">
+  <div>Coins: <span id="count">0</span></div>
+  <div>Coins per tap: <span id="power">1</span></div>
+  <div>Coins per second: <span id="cps">0</span></div>
+  <div>Prestige Points: <span id="prestige">0</span></div>
+</div>
+
+<button class="tap-btn" onclick="tap()">TAP</button>
+
+<div id="adBox">
+  Ad loading…
+</div>
+
+<div class="shop">
+  <button onclick="buyUpgrade()">
+    Upgrade Tap (<span id="upgradeCost">10</span> coins)
+  </button>
+
+  <button onclick="buyAuto()">
+    Auto Income (+1/sec) (25 coins)
+  </button>
+
+  <button onclick="prestige()">
+    Prestige (Reset for +1 bonus)
+  </button>
+  <button onclick="watchAd()">
+  Watch Ad → Get Bonus Coins
+</button>
+</div>
+
+<script>
+  let coins = 0;
+  let coinsPerTap = 1;
+  let coinsPerSecond = 0;
+  let upgradeCost = 10;
+  let prestigePoints = 0;
+  let prestigeBonus = 1;
+
+  function updateUI() {
+    document.getElementById("count").innerText = coins;
+    document.getElementById("power").innerText = coinsPerTap;
+    document.getElementById("cps").innerText = coinsPerSecond;
+    document.getElementById("upgradeCost").innerText = upgradeCost;
+    document.getElementById("prestige").innerText = prestigePoints;
+  }
+
+  function saveGame() {
+    localStorage.setItem("coins", coins);
+    localStorage.setItem("coinsPerTap", coinsPerTap);
+    localStorage.setItem("coinsPerSecond", coinsPerSecond);
+    localStorage.setItem("upgradeCost", upgradeCost);
+    localStorage.setItem("prestigePoints", prestigePoints);
+    localStorage.setItem("lastTime", Date.now());
+  }
+
+  function loadGame() {
+    let lastTime = localStorage.getItem("lastTime");
+
+    coins = parseInt(localStorage.getItem("coins")) || 0;
+    coinsPerTap = parseInt(localStorage.getItem("coinsPerTap")) || 1;
+    coinsPerSecond = parseInt(localStorage.getItem("coinsPerSecond")) || 0;
+    upgradeCost = parseInt(localStorage.getItem("upgradeCost")) || 10;
+    prestigePoints = parseInt(localStorage.getItem("prestigePoints")) || 0;
+
+    prestigeBonus = 1 + prestigePoints * 0.1;
+
+    if (lastTime) {
+      let secondsAway = Math.floor((Date.now() - lastTime) / 1000);
+      let offlineCoins = secondsAway * coinsPerSecond;
+      coins += offlineCoins;
+
+      if (offlineCoins > 0) {
+        alert("You earned " + offlineCoins + " coins while away!");
+      }
+    }
+
+    updateUI();
+  }
+
+  function tap() {
+    coins += Math.floor(coinsPerTap * prestigeBonus);
+    updateUI();
+    saveGame();
+  }
+
+  function buyUpgrade() {
+    if (coins >= upgradeCost) {
+      coins -= upgradeCost;
+      coinsPerTap += 1;
+      upgradeCost += 10;
+      updateUI();
+      saveGame();
+    } else {
+      alert("Not enough coins!");
+    }
+  }
+
+  function buyAuto() {
+    if (coins >= 25) {
+      coins -= 25;
+      coinsPerSecond += 1;
+      updateUI();
+      saveGame();
+    } else {
+      alert("Not enough coins!");
+    }
+  }
+
+  function prestige() {
+    if (coins < 100) {
+      alert("You need at least 100 coins to prestige!");
+      return;
+    }
+
+    prestigePoints += 1;
+    prestigeBonus = 1 + prestigePoints * 0.1;
+
+    coins = 0;
+    coinsPerTap = 1;
+    coinsPerSecond = 0;
+    upgradeCost = 10;
+
+    updateUI();
+    saveGame();
+
+    alert("Prestige complete! Bonus increased.");
+  }
+
+  setInterval(() => {
+    coins += Math.floor(coinsPerSecond * prestigeBonus);
+    updateUI();
+    saveGame();
+  }, 1000);
+  
+  setInterval(() => {
+  document.getElementById("adBox").innerText = "Ad refreshed";
+}, 15000);
+
+function watchAd() {
+  alert("Watching ad...");
+
+  // simulate ad delay
+  setTimeout(() => {
+    let reward = coinsPerSecond * 30 + coinsPerTap * 10;
+    if (reward < 10) reward = 10;
+
+    coins += reward;
+    updateUI();
+    saveGame();
+
+    alert("Ad finished! You earned " + reward + " coins.");
+  }, 3000);
+
+  loadGame();
+</script>
+
+</body>
+</html>
