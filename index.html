@@ -212,6 +212,15 @@
     <div class="row">Prestige Points: <span id="prestige">0</span></div>
   </div>
 
+  <div style="margin:10px 0; display:flex; gap:10px; width:min(90vw,360px);">
+  <button onclick="resetSave()" style="flex:1; padding:12px; border-radius:14px; border:none;">
+    Reset Save
+  </button>
+  <button onclick="giveCoins()" style="flex:1; padding:12px; border-radius:14px; border:none;">
+    +10,000 Coins
+  </button>
+  </div>
+
   <div class="tap-wrap" id="tapWrap">
     <button id="tapBtn" class="tap-btn" type="button" onclick="tap()">TAP</button>
   </div>
@@ -281,6 +290,7 @@
   </div>
 
   <script>
+    const DEV_MODE = true;
     // Show JS errors on screen (VERY helpful on mobile)
     const errBox = document.getElementById("errBox");
     window.addEventListener("error", (e) => {
@@ -546,6 +556,19 @@ autoCostEl.textContent = autoCost;
   if (coins < autoCost){ showToast("Need " + autoCost); return; }
   coins -= autoCost;
   coinsPerSecond += 1;
+    }
+    
+      function resetSave(){
+  if (!confirm("Reset your save?")) return;
+  localStorage.clear();
+  location.reload();
+}
+
+function giveCoins(){
+  coins += 10000;
+  updateUI(); saveGame(); checkAchievements();
+  showToast("+10,000 (debug)");
+}
 
   // NEW: scaling cost
   autoCost = Math.floor(autoCost * 1.25 + 10);
@@ -553,7 +576,7 @@ autoCostEl.textContent = autoCost;
   showToast("+1/sec");
   updateUI(); saveGame(); checkAchievements();
     }
-
+  
     // ======================
     // Prestige confirm
     // ======================
@@ -713,6 +736,9 @@ autoCostEl.textContent = autoCost;
     loadGame();
     updateUI();
     checkAchievements();
+    if (DEV_MODE) {
+  document.getElementById("debugPanel").style.display = "flex";
+    }
   </script>
 </body>
 </html>
