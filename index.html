@@ -228,7 +228,7 @@
     <button id="megaBtn" onclick="buyMega()">Mega Tap (+5 power) (<span id="megaCost">60</span> coins)</button>
     <button id="critBtn" onclick="buyCritChance()">Crit Chance +1% (<span id="critCost">40</span> coins)</button>
     <button id="critMultBtn" onclick="buyCritMult()">Crit Mult +0.25x (<span id="critMultCost">75</span> coins)</button>
-    <button id="autoBtn" onclick="buyAuto()">Auto Income (+1/sec) (25 coins)</button>
+    <button id="autoBtn" onclick="buyAuto()"> Auto Income (+1/sec) (<span id="autoCost">25</span> coins)</button>
     <button id="prestigeBtn" onclick="prestige()">Prestige (Reset for +1 bonus)</button>
     <button id="adBtn" onclick="watchAd()">Watch Ad → Get Bonus Coins</button>
     <button id="achBtn" type="button" onclick="openAchievements()">Achievements</button>
@@ -295,6 +295,7 @@
     let coinsPerTap = 1;
     let coinsPerSecond = 0;
     let upgradeCost = 10;
+    let autoCost = 25;
 
     let prestigePoints = 0;
     let prestigeBonus = 1;
@@ -312,7 +313,7 @@
     // ======================
     const tapBtn = document.getElementById("tapBtn");
     const tapWrap = document.getElementById("tapWrap");
-
+const autoCostEl = document.getElementById("autoCost");
     const countEl = document.getElementById("count");
     const powerEl = document.getElementById("power");
     const cpsEl = document.getElementById("cps");
@@ -401,7 +402,7 @@
       megaBtn.disabled = coins < megaCost;
       critBtn.disabled = coins < critCost || critChance >= 0.50;
       critMultBtn.disabled = coins < critMultCost || critMult >= 5;
-      autoBtn.disabled = coins < 25;
+      autoBtn.disabled = coins < autoCost;
       prestigeBtn.disabled = coins < 100;
     }
 
@@ -413,7 +414,7 @@
       powerEl.textContent = coinsPerTap;
       cpsEl.textContent = coinsPerSecond;
       prestigeEl.textContent = prestigePoints;
-
+autoCostEl.textContent = autoCost;
       upgradeCostEl.textContent = upgradeCost;
       megaCostEl.textContent = megaCost;
       critCostEl.textContent = critCost;
@@ -441,6 +442,7 @@
 
       localStorage.setItem("totalTaps", totalTaps);
       localStorage.setItem("lastTime", Date.now());
+      localStorage.setItem("autoCost", autoCost);
     }
 
     function loadGame(){
@@ -457,6 +459,7 @@
       critCost = parseInt(localStorage.getItem("critCost")) || 40;
       critMult = parseFloat(localStorage.getItem("critMult")) || 1.5;
       critMultCost = parseInt(localStorage.getItem("critMultCost")) || 75;
+      autoCost = parseInt(localStorage.getItem("autoCost")) || 25;
 
       totalTaps = parseInt(localStorage.getItem("totalTaps")) || 0;
 
@@ -498,19 +501,22 @@
     }
 
     function buyUpgrade(){
-      if (coins < upgradeCost){ showToast("Need " + upgradeCost); return; }
-      coins -= upgradeCost;
-      coinsPerTap += 1;
-      upgradeCost += 10;
-      showToast("Tap power +1");
-      updateUI(); saveGame(); checkAchievements();
+  if (coins < upgradeCost){ showToast("Need " + upgradeCost); return; }
+  coins -= upgradeCost;
+  coinsPerTap += 1;
+
+  // NEW: scaling cost (smooth early, harder later)
+  upgradeCost = Math.floor(upgradeCost * 1.18 + 6);
+
+  showToast("Tap power +1");
+  updateUI(); saveGame(); checkAchievements();
     }
 
     function buyMega(){
       if (coins < megaCost){ showToast("Need " + megaCost); return; }
       coins -= megaCost;
       coinsPerTap += 5;
-      megaCost = Math.floor(megaCost * 1.35) + 10;
+      megaCost = Math.floor(megaCost * 1.28 + 12);
       showToast("Mega +5!");
       updateUI(); saveGame(); checkAchievements();
     }
@@ -537,11 +543,15 @@
     }
 
     function buyAuto(){
-      if (coins < 25){ showToast("Need 25"); return; }
-      coins -= 25;
-      coinsPerSecond += 1;
-      showToast("+1/sec");
-      updateUI(); saveGame(); checkAchievements();
+  if (coins < autoCost){ showToast("Need " + autoCost); return; }
+  coins -= autoCost;
+  coinsPerSecond += 1;
+
+  // NEW: scaling cost
+  autoCost = Math.floor(autoCost * 1.25 + 10);
+
+  showToast("+1/sec");
+  updateUI(); saveGame(); checkAchievements();
     }
 
     // ======================
@@ -581,6 +591,7 @@
           coinsPerTap = 1;
           coinsPerSecond = 0;
           upgradeCost = 10;
+          autoCost = 25;
 
           megaCost = 60;
           critChance = 0;
