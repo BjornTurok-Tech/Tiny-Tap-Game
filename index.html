@@ -623,4 +623,118 @@
 
     function loadAchievements(){
       try { achievements = JSON.parse(localStorage.getItem(ACH_KEY)) || {}; }
+
+    function saveAchievements(){
+      localStorage.setItem(ACH_KEY, JSON.stringify(achievements));
+    }
+    function isUnlocked(id){ return !!achievements[id]; }
+
+    function unlockAchievement(id){
+      if (isUnlocked(id)) return;
+      const a = ACH.find(x => x.id === id);
+      achievements[id] = { when: Date.now() };
+      saveAchievements();
+
+      if (a && a.reward){
+        coins += a.reward;
+        showToast("Achievement: " + a.name + " (+" + a.reward + ")");
+      } else if (a){
+        showToast("Achievement: " + a.name);
+      }
+
+      renderAchievements();
+      updateUI();
+      saveGame();
+    }
+
+    function renderAchievements(){
+      achList.innerHTML = "";
+
+      let unlockedCount = 0;
+      for (const a of ACH) if (isUnlocked(a.id)) unlockedCount++;
+
+      const header = document.createElement("div");
+      header.style.opacity = "0.9";
+      header.style.fontSize = "13px";
+      header.textContent = "Unlocked: " + unlockedCount + " / " + ACH.length;
+      achList.appendChild(header);
+
+      for (const a of ACH){
+        const unlocked = isUnlocked(a.id);
+
+        const row = document.createElement("div");
+        row.style.padding = "12px";
+        row.style.borderRadius = "14px";
+        row.style.background = unlocked ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)";
+        row.style.border = "1px solid rgba(255,255,255,0.06)";
+
+        const top = document.createElement("div");
+        top.style.display = "flex";
+        top.style.alignItems = "center";
+        top.style.justifyContent = "space-between";
+        top.style.gap = "10px";
+
+        const title = document.createElement("div");
+        title.style.fontWeight = "800";
+        title.textContent = (unlocked ? "✅ " : "🔒 ") + a.name;
+
+        const reward = document.createElement("div");
+        reward.style.fontSize = "12px";
+        reward.style.opacity = "0.9";
+        reward.textContent = "+" + a.reward;
+
+        top.appendChild(title);
+        top.appendChild(reward);
+
+        const desc = document.createElement("div");
+        desc.style.marginTop = "6px";
+        desc.style.fontSize = "13px";
+        desc.style.opacity = "0.9";
+        desc.textContent = a.desc;
+
+        row.appendChild(top);
+        row.appendChild(desc);
+
+        achList.appendChild(row);
+      }
+    }
+
+    function checkAchievements(){
+      if (totalTaps >= 1) unlockAchievement("first_tap");
+      if (totalTaps >= 100) unlockAchievement("tapper_100");
+      if (coins >= 1000) unlockAchievement("coins_1k");
+      if (coinsPerSecond >= 10) unlockAchievement("cps_10");
+      if (coinsPerTap >= 25) unlockAchievement("power_25");
+      if (prestigePoints >= 1) unlockAchievement("first_prest");
+    }
+
+    function openAchievements(){
+      renderAchievements();
+      achOverlay.style.display = "flex";
+      achOverlay.style.pointerEvents = "auto";
+    }
+    function closeAchievements(){
+      achOverlay.style.display = "none";
+      achOverlay.style.pointerEvents = "none";
+    }
+
+    // ======================
+    // Timers
+    // ======================
+    setInterval(() => {
+      if (coinsPerSecond <= 0) return;
+      coins += Math.floor(coinsPerSecond * prestigeBonus);
+      updateUI();
+      saveGame();
+      checkAchievements();
+    }, 1000);
+
+    // Start
+    loadGame();
+    loadAchievements();
+    renderAchievements();
+    checkAchievements();
+  </script>
+</body>
+</html>
       
