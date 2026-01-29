@@ -268,16 +268,20 @@
     <button id="installBtn" type="button">
       Install App
     </button>
-    <button id="achBtn" type="button">
+    <button id="achBtn" type="button" onclick="openAchievements()">
   Achievements
     </button>
+    <button id="achClose" onclick="closeAchievements()" style="...">Close</button>
   </div>
 
   <div id="toast"></div>
 
   <div id="achOverlay" style="
-  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-  background:rgba(0,0,0,0.70); z-index:99998; padding:16px;">
+  position:fixed; inset:0;
+  display:none; pointer-events:none;
+  align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.70);
+  z-index:99998; padding:16px;">
   <div style="
     width:min(92vw,420px); max-height:78vh; overflow:auto;
     background:#1b1b1b; border-radius:18px; padding:16px;
@@ -399,6 +403,7 @@ const confirmOk = document.getElementById("confirmOk");
 
 let pendingConfirm = null;
 
+
 function openConfirm(message, onYes) {
   pendingConfirm = onYes;
   confirmText.textContent = message;
@@ -435,6 +440,17 @@ confirmOk.addEventListener("click", () => {
       el.textContent = text;
       tapWrap.appendChild(el);
       el.addEventListener("animationend", ()=> el.remove());
+    }
+      function openAchievements() {
+  renderAchievements();
+  achOverlay.style.display = "flex";
+  achOverlay.style.pointerEvents = "auto";
+}
+
+function closeAchievements() {
+  achOverlay.style.display = "none";
+  achOverlay.style.pointerEvents = "none";
+}
     }
 
     function pressAnim(){
@@ -478,7 +494,7 @@ const ACH = [
   { id:"power_25",   name:"Milestone 1",      desc:"Reach 25 coins per tap.",     reward: 150 },
   { id:"first_prest",name:"Reborn",           desc:"Prestige 1 time.",            reward: 250 }
 ];
-
+      
 function loadAchievements(){
   try {
     achievements = JSON.parse(localStorage.getItem(ACH_KEY)) || {};
