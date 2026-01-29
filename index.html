@@ -239,7 +239,7 @@
   <div class="shop">
     <button id="upgradeBtn" onclick="buyUpgrade()">
       Upgrade Tap (<span id="upgradeCost">10</span> coins)
-    </button>
+ </button>
 
     <button id="megaBtn" onclick="buyMega()">
   Mega Tap (+5 power) (<span id="megaCost">60</span> coins)
@@ -268,9 +268,30 @@
     <button id="installBtn" type="button">
       Install App
     </button>
+    <button id="achBtn" type="button">
+  Achievements
+    </button>
   </div>
 
   <div id="toast"></div>
+
+  <div id="achOverlay" style="
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.70); z-index:99998; padding:16px;">
+  <div style="
+    width:min(92vw,420px); max-height:78vh; overflow:auto;
+    background:#1b1b1b; border-radius:18px; padding:16px;
+    box-shadow:0 18px 50px rgba(0,0,0,0.6); text-align:left;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+      <div style="font-size:18px; font-weight:800;">Achievements</div>
+      <button id="achClose" style="
+        padding:10px 12px; border-radius:12px; border:none;
+        background:#2b2b2b; color:#fff; font-size:14px;">Close</button>
+    </div>
+
+    <div id="achList" style="margin-top:12px; display:flex; flex-direction:column; gap:10px;"></div>
+  </div>
+  </div>
   
   <div id="confirmOverlay" style="
   position:fixed; inset:0; display:none; align-items:center; justify-content:center;
@@ -289,6 +310,7 @@
       <button id="confirmOk" style="
         flex:1; padding:12px; border-radius:14px; border:none;
         background:#f5f5f5; color:#111; font-size:16px; font-weight:800;">Prestige now</button>
+      
     </div>
   </div>
   </div>
@@ -337,12 +359,17 @@ let critChance = 0;      // 0.00 to 0.50 (0% to 50%)
 let critCost = 40;
 let critMult = 1.5;      // crit multiplier
 let critMultCost = 75;
+    let totalTaps = 0;
 
     // ======================
     // Elements
     // ======================
     const tapBtn = document.getElementById("tapBtn");
     const tapWrap = document.getElementById("tapWrap");
+    const achBtn = document.getElementById("achBtn");
+const achOverlay = document.getElementById("achOverlay");
+const achClose = document.getElementById("achClose");
+const achList = document.getElementById("achList");
 
     const countEl = document.getElementById("count");
     const powerEl = document.getElementById("power");
@@ -436,6 +463,109 @@ critCostEl.textContent = critCost;
 critMultCostEl.textContent = critMultCost;
 
 updateTierUI();
+
+      // ======================
+// Achievements
+// ======================
+const ACH_KEY = "achievements_v1";
+let achievements = {};
+
+const ACH = [
+  { id:"first_tap",  name:"First Tap",        desc:"Tap 1 time.",                 reward: 10 },
+  { id:"tapper_100", name:"Getting Warm",     desc:"Tap 100 times.",              reward: 50 },
+  { id:"coins_1k",   name:"Pocket Change",    desc:"Reach 1,000 coins.",          reward: 75 },
+  { id:"cps_10",     name:"Passive Income",   desc:"Reach 10 coins per second.",  reward: 120 },
+  { id:"power_25",   name:"Milestone 1",      desc:"Reach 25 coins per tap.",     reward: 150 },
+  { id:"first_prest",name:"Reborn",           desc:"Prestige 1 time.",            reward: 250 }
+];
+
+function loadAchievements(){
+  try {
+    achievements = JSON.parse(localStorage.getItem(ACH_KEY)) || {};
+  } catch (e) {
+    achievements = {};
+  }
+}
+
+function saveAchievements(){
+  localStorage.setItem(ACH_KEY, JSON.stringify(achievements));
+}
+
+function isUnlocked(id){
+  return !!achievements[id];
+}
+
+function unlockAchievement(id){
+  if (isUnlocked(id)) return;
+
+  const a = ACH.find(x => x.id === id);
+  achievements[id] = { when: Date.now() };
+  saveAchievements();
+
+  // reward
+  if (a && a.reward) {
+    coins += a.reward;
+    showToast("Achievement: " + a.name + " (+" + a.reward + ")");
+  } else if (a) {
+    showToast("Achievement: " + a.name);
+  }
+
+  updateUI();
+  saveGame();
+  renderAchievements();
+}
+
+function renderAchievements(){
+  achList.innerHTML = "";
+
+  let unlockedCount = 0;
+  for (const a of ACH) if (isUnlocked(a.id)) unlockedCount++;
+
+  // header line
+  const header = document.createElement("div");
+  header.style.opacity = "0.9";
+  header.style.fontSize = "13px";
+  header.textContent = "Unlocked: " + unlockedCount + " / " + ACH.length;
+  achList.appendChild(header);
+
+  for (const a of ACH) {
+    const unlocked = isUnlocked(a.id);
+
+    const row = document.createElement("div");
+    row.style.padding = "12px";
+    row.style.borderRadius = "14px";
+    row.style.background = unlocked ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)";
+    row.style.border = "1px solid rgba(255,255,255,0.06)";
+
+    const top = document.createElement("div");
+    top.style.display = "flex";
+    top.style.alignItems = "center";
+    top.style.justifyContent = "space-between";
+    top.style.gap = "10px";
+
+    const title = document.createElement("div");
+    title.style.fontWeight = "800";
+    title.textContent = (unlocked ? "✅ " : "🔒 ") + a.name;
+
+    const reward = document.createElement("div");
+    reward.style.fontSize = "12px";
+    reward.style.opacity = "0.9";
+    reward.textContent = "+" + a.reward;
+
+    top.appendChild(title);
+    top.appendChild(reward);
+
+    const desc = document.createElement("div");
+    desc.style.marginTop = "6px";
+    desc.style.fontSize = "13px";
+    desc.style.opacity = "0.9";
+    desc.textContent = a.desc;
+
+    row.appendChild(top);
+    row.appendChild(desc);
+    achList.appendChild(row);
+  }
+}
     }
 
     // ======================
@@ -453,6 +583,7 @@ localStorage.setItem("critChance", critChance);
 localStorage.setItem("critCost", critCost);
 localStorage.setItem("critMult", critMult);
 localStorage.setItem("critMultCost", critMultCost);
+      localStorage.setItem("totalTaps", totalTaps);
     }
 
     function loadGame() {
@@ -477,6 +608,7 @@ critChance = parseFloat(localStorage.getItem("critChance")) || 0;
 critCost = parseInt(localStorage.getItem("critCost")) || 40;
 critMult = parseFloat(localStorage.getItem("critMult")) || 1.5;
 critMultCost = parseInt(localStorage.getItem("critMultCost")) || 75;
+          totalTaps = parseInt(localStorage.getItem("totalTaps")) || 0;
         }
       }
 
@@ -487,6 +619,7 @@ critMultCost = parseInt(localStorage.getItem("critMultCost")) || 75;
     // Gameplay
     // ======================
     function tap() {
+      totalTaps += 1;
   // base gain
   let gained = Math.floor(coinsPerTap * prestigeBonus);
 
@@ -517,6 +650,7 @@ critMultCost = parseInt(localStorage.getItem("critMultCost")) || 75;
   showToast("Mega +5 power!");
   updateUI();
   saveGame();
+      checkAchievements();
 }
 
 function buyCritChance() {
@@ -557,6 +691,7 @@ function buyCritMult() {
       showToast("Tap power +1");
       updateUI();
       saveGame();
+      checkAchievements();
     }
 
     function buyAuto() {
@@ -570,6 +705,7 @@ function buyCritMult() {
       showToast("+1 coin/sec");
       updateUI();
       saveGame();
+      checkAchievements();
     }
 
     function prestige() {
@@ -577,6 +713,23 @@ function buyCritMult() {
     showToast("Need 100 coins");
     return;
   }
+      function checkAchievements(){
+  // taps
+  if (totalTaps >= 1) unlockAchievement("first_tap");
+  if (totalTaps >= 100) unlockAchievement("tapper_100");
+
+  // coins
+  if (coins >= 1000) unlockAchievement("coins_1k");
+
+  // cps
+  if (coinsPerSecond >= 10) unlockAchievement("cps_10");
+
+  // tap power
+  if (coinsPerTap >= 25) unlockAchievement("power_25");
+
+  // prestige
+  if (prestigePoints >= 1) unlockAchievement("first_prest");
+      }
 
   const nextPoints = prestigePoints + 1;
   const nextBonus = 1 + nextPoints * 0.1;
@@ -663,8 +816,24 @@ function buyCritMult() {
       installBtn.style.display = "none";
     });
 
+    achBtn.addEventListener("click", () => {
+  renderAchievements();
+  achOverlay.style.display = "flex";
+});
+
+achClose.addEventListener("click", () => {
+  achOverlay.style.display = "none";
+});
+
+achOverlay.addEventListener("click", (e) => {
+  if (e.target === achOverlay) achOverlay.style.display = "none";
+});
+
     // Start
     loadGame();
+    loadAchievements();
+renderAchievements();
+checkAchievements();
   </script>
 </body>
 </html>
