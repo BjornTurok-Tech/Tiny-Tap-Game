@@ -4,24 +4,19 @@
   <meta charset="UTF-8" />
   <title>Tiny Tap Game</title>
 
-  <!-- Mobile "app feel" -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
   <meta name="theme-color" content="#111111">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- PWA -->
   <link rel="manifest" href="manifest.webmanifest">
 
   <style>
     :root{
       --bg:#111;
-      --panel:#1a1a1a;
       --btn:#f5f5f5;
       --btnText:#111;
       --muted:#aaa;
-      --danger:#ff6b6b;
-      --ok:#9cff9c;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -33,8 +28,6 @@
       background: var(--bg);
       color: white;
       font-family: Arial, sans-serif;
-
-      /* stops weird scroll/touch behaviors */
       overscroll-behavior: none;
       touch-action: manipulation;
     }
@@ -76,53 +69,31 @@
       transition: transform 0.06s ease;
     }
 
-    /* tap "skins" by milestone tier */
-.tap-btn.tier0 { background: #f5f5f5; color:#111; box-shadow: 0 16px 40px rgba(0,0,0,0.45); }
-.tap-btn.tier1 { background: #e6fff3; color:#0b2; box-shadow: 0 0 0 2px rgba(120,255,190,0.25), 0 18px 46px rgba(0,0,0,0.55); }
-.tap-btn.tier2 { background: #e9f2ff; color:#2a6cff; box-shadow: 0 0 0 2px rgba(120,170,255,0.25), 0 0 28px rgba(70,140,255,0.35), 0 18px 46px rgba(0,0,0,0.6); }
-.tap-btn.tier3 { background: #fff0e6; color:#ff7a18; box-shadow: 0 0 0 2px rgba(255,170,120,0.25), 0 0 34px rgba(255,140,70,0.35), 0 18px 46px rgba(0,0,0,0.65); }
-.tap-btn.tier4 { background: #f6e9ff; color:#b44cff; box-shadow: 0 0 0 2px rgba(210,120,255,0.25), 0 0 40px rgba(180,70,255,0.35), 0 18px 50px rgba(0,0,0,0.7); }
+    .tap-btn.pressed{ transform: scale(0.98); }
 
-/* subtle outer pulse ring */
-.tap-wrap::after{
-  content:"";
-  position:absolute;
-  inset:-10px;
-  border-radius: 28px;
-  border: 2px solid rgba(255,255,255,0.08);
-  opacity:0;
-  pointer-events:none;
-}
+    /* skins */
+    .tap-btn.tier0 { background: #f5f5f5; color:#111; }
+    .tap-btn.tier1 { background: #e6fff3; color:#0b2; box-shadow: 0 0 0 2px rgba(120,255,190,0.22), 0 16px 40px rgba(0,0,0,0.55); }
+    .tap-btn.tier2 { background: #e9f2ff; color:#2a6cff; box-shadow: 0 0 28px rgba(70,140,255,0.35), 0 16px 40px rgba(0,0,0,0.6); }
+    .tap-btn.tier3 { background: #fff0e6; color:#ff7a18; box-shadow: 0 0 34px rgba(255,140,70,0.35), 0 16px 40px rgba(0,0,0,0.65); }
+    .tap-btn.tier4 { background: #f6e9ff; color:#b44cff; box-shadow: 0 0 40px rgba(180,70,255,0.35), 0 16px 40px rgba(0,0,0,0.7); }
 
-.tap-wrap.pulse::after{
-  animation: ringPulse 0.55s ease-out forwards;
-}
-
-@keyframes ringPulse{
-  0% { opacity: 0; transform: scale(0.98); }
-  20%{ opacity: 0.55; }
-  100%{ opacity: 0; transform: scale(1.04); }
-}
-
-/* milestones panel */
-#milestones{
-  width: min(90vw, 360px);
-  margin: 6px 0 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.92);
-  font-size: 14px;
-  line-height: 1.3;
-}
-#milestones b{ font-weight: 800; }
-
-    /* tap "pop" */
-    .tap-btn.pressed{
-      transform: scale(0.98);
+    .tap-wrap::after{
+      content:"";
+      position:absolute;
+      inset:-10px;
+      border-radius: 28px;
+      border: 2px solid rgba(255,255,255,0.08);
+      opacity:0;
+      pointer-events:none;
+    }
+    .tap-wrap.pulse::after{ animation: ringPulse 0.55s ease-out forwards; }
+    @keyframes ringPulse{
+      0% { opacity: 0; transform: scale(0.98); }
+      20%{ opacity: 0.55; }
+      100%{ opacity: 0; transform: scale(1.04); }
     }
 
-    /* floating +coins */
     .float {
       position: absolute;
       left: 50%;
@@ -136,7 +107,6 @@
       text-shadow: 0 6px 18px rgba(0,0,0,0.55);
       animation: floatUp 0.65s ease-out forwards;
     }
-
     @keyframes floatUp{
       0% { opacity: 0; transform: translate(-50%, -10%) scale(0.98); }
       15% { opacity: 1; }
@@ -155,6 +125,18 @@
       border-radius: 12px;
       font-size: 14px;
     }
+
+    #milestones{
+      width: min(90vw, 360px);
+      margin: 6px 0 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.92);
+      font-size: 14px;
+      line-height: 1.3;
+    }
+    #milestones b{ font-weight: 800; }
 
     .shop{
       width: min(90vw, 360px);
@@ -179,7 +161,6 @@
       filter: grayscale(0.2);
     }
 
-    /* small message "toast" */
     #toast{
       position: fixed;
       left: 50%;
@@ -199,18 +180,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
-    #toast.show{
-      opacity: 1;
-      transform: translateX(-50%) translateY(-6px);
-    }
-
-    /* install button (shows only if install is available) */
-    #installBtn{
-      display:none;
-      background:#2b2b2b;
-      color:#fff;
-    }
+    #toast.show{ opacity: 1; transform: translateX(-50%) translateY(-6px); }
   </style>
 </head>
 
@@ -225,33 +195,32 @@
   </div>
 
   <div class="tap-wrap" id="tapWrap">
-    <!-- onclick is the most reliable on mobile -->
     <button id="tapBtn" class="tap-btn" type="button" onclick="tap()">TAP</button>
   </div>
 
   <div id="adBox">Ad loading…</div>
 
   <div id="milestones">
-  <div><b>Milestone Tier:</b> <span id="tierLabel">Rookie</span></div>
-  <div><b>Next unlock:</b> <span id="nextLabel">Tap Power 25</span></div>
+    <div><b>Milestone Tier:</b> <span id="tierLabel">Rookie</span></div>
+    <div><b>Next unlock:</b> <span id="nextLabel">Tap Power 25</span></div>
   </div>
 
   <div class="shop">
     <button id="upgradeBtn" onclick="buyUpgrade()">
       Upgrade Tap (<span id="upgradeCost">10</span> coins)
- </button>
+    </button>
 
     <button id="megaBtn" onclick="buyMega()">
-  Mega Tap (+5 power) (<span id="megaCost">60</span> coins)
-</button>
+      Mega Tap (+5 power) (<span id="megaCost">60</span> coins)
+    </button>
 
-<button id="critBtn" onclick="buyCritChance()">
-  Crit Chance +1% (<span id="critCost">40</span> coins)
-</button>
+    <button id="critBtn" onclick="buyCritChance()">
+      Crit Chance +1% (<span id="critCost">40</span> coins)
+    </button>
 
-<button id="critMultBtn" onclick="buyCritMult()">
-  Crit Mult +0.25x (<span id="critMultCost">75</span> coins)
-</button>
+    <button id="critMultBtn" onclick="buyCritMult()">
+      Crit Mult +0.25x (<span id="critMultCost">75</span> coins)
+    </button>
 
     <button id="autoBtn" onclick="buyAuto()">
       Auto Income (+1/sec) (25 coins)
@@ -265,90 +234,56 @@
       Watch Ad → Get Bonus Coins
     </button>
 
-    <button id="installBtn" type="button">
-      Install App
-    </button>
     <button id="achBtn" type="button" onclick="openAchievements()">
-  Achievements
+      Achievements
     </button>
-    <button id="achClose" onclick="closeAchievements()" style="...">Close</button>
   </div>
 
   <div id="toast"></div>
 
+  <!-- Achievements overlay -->
   <div id="achOverlay" style="
-  position:fixed; inset:0;
-  display:none; pointer-events:none;
-  align-items:center; justify-content:center;
-  background:rgba(0,0,0,0.70);
-  z-index:99998; padding:16px;">
-  <div style="
-    width:min(92vw,420px); max-height:78vh; overflow:auto;
-    background:#1b1b1b; border-radius:18px; padding:16px;
-    box-shadow:0 18px 50px rgba(0,0,0,0.6); text-align:left;">
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-      <div style="font-size:18px; font-weight:800;">Achievements</div>
-      <button id="achClose" style="
-        padding:10px 12px; border-radius:12px; border:none;
-        background:#2b2b2b; color:#fff; font-size:14px;">Close</button>
+    position:fixed; inset:0;
+    display:none; pointer-events:none;
+    align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.70);
+    z-index:99998; padding:16px;">
+    <div style="
+      width:min(92vw,420px); max-height:78vh; overflow:auto;
+      background:#1b1b1b; border-radius:18px; padding:16px;
+      box-shadow:0 18px 50px rgba(0,0,0,0.6); text-align:left;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div style="font-size:18px; font-weight:800;">Achievements</div>
+        <button type="button" onclick="closeAchievements()" style="
+          padding:10px 12px; border-radius:12px; border:none;
+          background:#2b2b2b; color:#fff; font-size:14px;">Close</button>
+      </div>
+      <div id="achList" style="margin-top:12px; display:flex; flex-direction:column; gap:10px;"></div>
     </div>
+  </div>
 
-    <div id="achList" style="margin-top:12px; display:flex; flex-direction:column; gap:10px;"></div>
-  </div>
-  </div>
-  
+  <!-- Prestige confirm overlay -->
   <div id="confirmOverlay" style="
-  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-  background:rgba(0,0,0,0.65); z-index:99999; padding:16px;">
-  <div style="
-    width:min(92vw,380px); background:#1b1b1b; border-radius:18px; padding:16px;
-    box-shadow:0 18px 50px rgba(0,0,0,0.6); text-align:left;">
-    <div style="font-size:18px; font-weight:800; margin-bottom:8px;">Prestige?</div>
-    <div id="confirmText" style="font-size:14px; color:#ddd; line-height:1.35; margin-bottom:12px;">
-      <!-- filled by JS -->
+    position:fixed; inset:0; display:none; pointer-events:none;
+    align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.65); z-index:99999; padding:16px;">
+    <div style="
+      width:min(92vw,380px); background:#1b1b1b; border-radius:18px; padding:16px;
+      box-shadow:0 18px 50px rgba(0,0,0,0.6); text-align:left;">
+      <div style="font-size:18px; font-weight:800; margin-bottom:8px;">Prestige?</div>
+      <div id="confirmText" style="font-size:14px; color:#ddd; line-height:1.35; margin-bottom:12px;"></div>
+      <div style="display:flex; gap:10px;">
+        <button type="button" onclick="closeConfirm()" style="
+          flex:1; padding:12px; border-radius:14px; border:none;
+          background:#2b2b2b; color:#fff; font-size:16px;">Cancel</button>
+        <button type="button" onclick="confirmYes()" style="
+          flex:1; padding:12px; border-radius:14px; border:none;
+          background:#f5f5f5; color:#111; font-size:16px; font-weight:800;">Prestige now</button>
+      </div>
     </div>
-    <div style="display:flex; gap:10px;">
-      <button id="confirmCancel" style="
-        flex:1; padding:12px; border-radius:14px; border:none;
-        background:#2b2b2b; color:#fff; font-size:16px;">Cancel</button>
-      <button id="confirmOk" style="
-        flex:1; padding:12px; border-radius:14px; border:none;
-        background:#f5f5f5; color:#111; font-size:16px; font-weight:800;">Prestige now</button>
-      
-    </div>
-  </div>
   </div>
 
   <script>
-
-    function getTierFromPower() {
-  // milestones based on coinsPerTap
-  if (coinsPerTap >= 200) return 4;
-  if (coinsPerTap >= 100) return 3;
-  if (coinsPerTap >= 50) return 2;
-  if (coinsPerTap >= 25) return 1;
-  return 0;
-}
-
-function updateTierUI() {
-  const tier = getTierFromPower();
-
-  // clear tier classes
-  tapBtn.classList.remove("tier0","tier1","tier2","tier3","tier4");
-  tapBtn.classList.add("tier" + tier);
-
-  const labels = ["Rookie","Apprentice","Adept","Elite","Legend"];
-  tierLabel.textContent = labels[tier];
-
-  const nextMap = [25, 50, 100, 200, 999999];
-  const next = nextMap[tier];
-  nextLabel.textContent = (tier >= 4) ? "Max tier reached" : ("Tap Power " + next);
-
-  // fun text change
-  const texts = ["TAP","GRIND","POWER","ASCEND","LEGEND"];
-  tapBtn.textContent = texts[tier];
-}
-
     // ======================
     // Game state
     // ======================
@@ -356,13 +291,16 @@ function updateTierUI() {
     let coinsPerTap = 1;
     let coinsPerSecond = 0;
     let upgradeCost = 10;
+
     let prestigePoints = 0;
     let prestigeBonus = 1;
+
     let megaCost = 60;
-let critChance = 0;      // 0.00 to 0.50 (0% to 50%)
-let critCost = 40;
-let critMult = 1.5;      // crit multiplier
-let critMultCost = 75;
+    let critChance = 0;
+    let critCost = 40;
+    let critMult = 1.5;
+    let critMultCost = 75;
+
     let totalTaps = 0;
 
     // ======================
@@ -370,61 +308,38 @@ let critMultCost = 75;
     // ======================
     const tapBtn = document.getElementById("tapBtn");
     const tapWrap = document.getElementById("tapWrap");
-    const achBtn = document.getElementById("achBtn");
-const achOverlay = document.getElementById("achOverlay");
-const achClose = document.getElementById("achClose");
-const achList = document.getElementById("achList");
 
     const countEl = document.getElementById("count");
     const powerEl = document.getElementById("power");
     const cpsEl = document.getElementById("cps");
     const prestigeEl = document.getElementById("prestige");
+
     const upgradeCostEl = document.getElementById("upgradeCost");
+    const megaCostEl = document.getElementById("megaCost");
+    const critCostEl = document.getElementById("critCost");
+    const critMultCostEl = document.getElementById("critMultCost");
 
     const upgradeBtn = document.getElementById("upgradeBtn");
+    const megaBtn = document.getElementById("megaBtn");
+    const critBtn = document.getElementById("critBtn");
+    const critMultBtn = document.getElementById("critMultBtn");
     const autoBtn = document.getElementById("autoBtn");
     const prestigeBtn = document.getElementById("prestigeBtn");
+
     const adBox = document.getElementById("adBox");
     const toast = document.getElementById("toast");
-    const megaBtn = document.getElementById("megaBtn");
-const critBtn = document.getElementById("critBtn");
-const critMultBtn = document.getElementById("critMultBtn");
 
-const megaCostEl = document.getElementById("megaCost");
-const critCostEl = document.getElementById("critCost");
-const critMultCostEl = document.getElementById("critMultCost");
+    const tierLabel = document.getElementById("tierLabel");
+    const nextLabel = document.getElementById("nextLabel");
 
-const tierLabel = document.getElementById("tierLabel");
-const nextLabel = document.getElementById("nextLabel");
-const confirmOverlay = document.getElementById("confirmOverlay");
-const confirmText = document.getElementById("confirmText");
-const confirmCancel = document.getElementById("confirmCancel");
-const confirmOk = document.getElementById("confirmOk");
+    const achOverlay = document.getElementById("achOverlay");
+    const achList = document.getElementById("achList");
 
-let pendingConfirm = null;
+    const confirmOverlay = document.getElementById("confirmOverlay");
+    const confirmText = document.getElementById("confirmText");
 
-
-function openConfirm(message, onYes) {
-  pendingConfirm = onYes;
-  confirmText.textContent = message;
-  confirmOverlay.style.display = "flex";
-}
-
-function closeConfirm() {
-  confirmOverlay.style.display = "none";
-  pendingConfirm = null;
-}
-
-confirmCancel.addEventListener("click", closeConfirm);
-confirmOverlay.addEventListener("click", (e) => {
-  if (e.target === confirmOverlay) closeConfirm();
-});
-confirmOk.addEventListener("click", () => {
-  if (pendingConfirm) pendingConfirm();
-  closeConfirm();
-});
     // ======================
-    // UI helpers
+    // Toast
     // ======================
     let toastTimer = null;
     function showToast(msg){
@@ -441,169 +356,91 @@ confirmOk.addEventListener("click", () => {
       tapWrap.appendChild(el);
       el.addEventListener("animationend", ()=> el.remove());
     }
-      function openAchievements() {
-  renderAchievements();
-  achOverlay.style.display = "flex";
-  achOverlay.style.pointerEvents = "auto";
-}
-
-function closeAchievements() {
-  achOverlay.style.display = "none";
-  achOverlay.style.pointerEvents = "none";
-}
-    }
 
     function pressAnim(){
       tapBtn.classList.add("pressed");
       setTimeout(()=> tapBtn.classList.remove("pressed"), 70);
     }
 
-    function updateButtons(){
-      upgradeBtn.disabled = coins < upgradeCost;
-      autoBtn.disabled = coins < 25;
-      prestigeBtn.disabled = coins < 100;
-      megaBtn.disabled = coins < megaCost;
-critBtn.disabled = coins < critCost || critChance >= 0.50;
-critMultBtn.disabled = coins < critMultCost || critMult >= 5;
+    // ======================
+    // Milestones / Tier
+    // ======================
+    function getTierFromPower() {
+      if (coinsPerTap >= 200) return 4;
+      if (coinsPerTap >= 100) return 3;
+      if (coinsPerTap >= 50) return 2;
+      if (coinsPerTap >= 25) return 1;
+      return 0;
     }
 
-    function updateUI() {
+    function updateTierUI() {
+      const tier = getTierFromPower();
+      tapBtn.classList.remove("tier0","tier1","tier2","tier3","tier4");
+      tapBtn.classList.add("tier" + tier);
+
+      const labels = ["Rookie","Apprentice","Adept","Elite","Legend"];
+      tierLabel.textContent = labels[tier];
+
+      const nextMap = [25, 50, 100, 200, 999999];
+      const next = nextMap[tier];
+      nextLabel.textContent = (tier >= 4) ? "Max tier reached" : ("Tap Power " + next);
+
+      const texts = ["TAP","GRIND","POWER","ASCEND","LEGEND"];
+      tapBtn.textContent = texts[tier];
+    }
+
+    // ======================
+    // Buttons enabled/disabled
+    // ======================
+    function updateButtons(){
+      upgradeBtn.disabled = coins < upgradeCost;
+      megaBtn.disabled = coins < megaCost;
+      critBtn.disabled = coins < critCost || critChance >= 0.50;
+      critMultBtn.disabled = coins < critMultCost || critMult >= 5;
+      autoBtn.disabled = coins < 25;
+      prestigeBtn.disabled = coins < 100;
+    }
+
+    // ======================
+    // UI update
+    // ======================
+    function updateUI(){
       countEl.textContent = coins;
       powerEl.textContent = coinsPerTap;
       cpsEl.textContent = coinsPerSecond;
-      upgradeCostEl.textContent = upgradeCost;
       prestigeEl.textContent = prestigePoints;
-      updateButtons();
+
+      upgradeCostEl.textContent = upgradeCost;
       megaCostEl.textContent = megaCost;
-critCostEl.textContent = critCost;
-critMultCostEl.textContent = critMultCost;
+      critCostEl.textContent = critCost;
+      critMultCostEl.textContent = critMultCost;
 
-updateTierUI();
-
-      // ======================
-// Achievements
-// ======================
-const ACH_KEY = "achievements_v1";
-let achievements = {};
-
-const ACH = [
-  { id:"first_tap",  name:"First Tap",        desc:"Tap 1 time.",                 reward: 10 },
-  { id:"tapper_100", name:"Getting Warm",     desc:"Tap 100 times.",              reward: 50 },
-  { id:"coins_1k",   name:"Pocket Change",    desc:"Reach 1,000 coins.",          reward: 75 },
-  { id:"cps_10",     name:"Passive Income",   desc:"Reach 10 coins per second.",  reward: 120 },
-  { id:"power_25",   name:"Milestone 1",      desc:"Reach 25 coins per tap.",     reward: 150 },
-  { id:"first_prest",name:"Reborn",           desc:"Prestige 1 time.",            reward: 250 }
-];
-      
-function loadAchievements(){
-  try {
-    achievements = JSON.parse(localStorage.getItem(ACH_KEY)) || {};
-  } catch (e) {
-    achievements = {};
-  }
-}
-
-function saveAchievements(){
-  localStorage.setItem(ACH_KEY, JSON.stringify(achievements));
-}
-
-function isUnlocked(id){
-  return !!achievements[id];
-}
-
-function unlockAchievement(id){
-  if (isUnlocked(id)) return;
-
-  const a = ACH.find(x => x.id === id);
-  achievements[id] = { when: Date.now() };
-  saveAchievements();
-
-  // reward
-  if (a && a.reward) {
-    coins += a.reward;
-    showToast("Achievement: " + a.name + " (+" + a.reward + ")");
-  } else if (a) {
-    showToast("Achievement: " + a.name);
-  }
-
-  updateUI();
-  saveGame();
-  renderAchievements();
-}
-
-function renderAchievements(){
-  achList.innerHTML = "";
-
-  let unlockedCount = 0;
-  for (const a of ACH) if (isUnlocked(a.id)) unlockedCount++;
-
-  // header line
-  const header = document.createElement("div");
-  header.style.opacity = "0.9";
-  header.style.fontSize = "13px";
-  header.textContent = "Unlocked: " + unlockedCount + " / " + ACH.length;
-  achList.appendChild(header);
-
-  for (const a of ACH) {
-    const unlocked = isUnlocked(a.id);
-
-    const row = document.createElement("div");
-    row.style.padding = "12px";
-    row.style.borderRadius = "14px";
-    row.style.background = unlocked ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)";
-    row.style.border = "1px solid rgba(255,255,255,0.06)";
-
-    const top = document.createElement("div");
-    top.style.display = "flex";
-    top.style.alignItems = "center";
-    top.style.justifyContent = "space-between";
-    top.style.gap = "10px";
-
-    const title = document.createElement("div");
-    title.style.fontWeight = "800";
-    title.textContent = (unlocked ? "✅ " : "🔒 ") + a.name;
-
-    const reward = document.createElement("div");
-    reward.style.fontSize = "12px";
-    reward.style.opacity = "0.9";
-    reward.textContent = "+" + a.reward;
-
-    top.appendChild(title);
-    top.appendChild(reward);
-
-    const desc = document.createElement("div");
-    desc.style.marginTop = "6px";
-    desc.style.fontSize = "13px";
-    desc.style.opacity = "0.9";
-    desc.textContent = a.desc;
-
-    row.appendChild(top);
-    row.appendChild(desc);
-    achList.appendChild(row);
-  }
-}
+      updateTierUI();
+      updateButtons();
     }
 
     // ======================
     // Save / load
     // ======================
-    function saveGame() {
+    function saveGame(){
       localStorage.setItem("coins", coins);
       localStorage.setItem("coinsPerTap", coinsPerTap);
       localStorage.setItem("coinsPerSecond", coinsPerSecond);
       localStorage.setItem("upgradeCost", upgradeCost);
       localStorage.setItem("prestigePoints", prestigePoints);
-      localStorage.setItem("lastTime", Date.now());
+
       localStorage.setItem("megaCost", megaCost);
-localStorage.setItem("critChance", critChance);
-localStorage.setItem("critCost", critCost);
-localStorage.setItem("critMult", critMult);
-localStorage.setItem("critMultCost", critMultCost);
+      localStorage.setItem("critChance", critChance);
+      localStorage.setItem("critCost", critCost);
+      localStorage.setItem("critMult", critMult);
+      localStorage.setItem("critMultCost", critMultCost);
+
       localStorage.setItem("totalTaps", totalTaps);
+      localStorage.setItem("lastTime", Date.now());
     }
 
-    function loadGame() {
-      const lastTime = localStorage.getItem("lastTime");
+    function loadGame(){
+      const lastTime = parseInt(localStorage.getItem("lastTime")) || 0;
 
       coins = parseInt(localStorage.getItem("coins")) || 0;
       coinsPerTap = parseInt(localStorage.getItem("coinsPerTap")) || 1;
@@ -611,20 +448,22 @@ localStorage.setItem("critMultCost", critMultCost);
       upgradeCost = parseInt(localStorage.getItem("upgradeCost")) || 10;
       prestigePoints = parseInt(localStorage.getItem("prestigePoints")) || 0;
 
+      megaCost = parseInt(localStorage.getItem("megaCost")) || 60;
+      critChance = parseFloat(localStorage.getItem("critChance")) || 0;
+      critCost = parseInt(localStorage.getItem("critCost")) || 40;
+      critMult = parseFloat(localStorage.getItem("critMult")) || 1.5;
+      critMultCost = parseInt(localStorage.getItem("critMultCost")) || 75;
+
+      totalTaps = parseInt(localStorage.getItem("totalTaps")) || 0;
+
       prestigeBonus = 1 + prestigePoints * 0.1;
 
-      if (lastTime) {
+      if (lastTime > 0) {
         const secondsAway = Math.floor((Date.now() - lastTime) / 1000);
         const offlineCoins = secondsAway * coinsPerSecond;
         if (offlineCoins > 0) {
           coins += offlineCoins;
-          showToast("Offline: +" + offlineCoins + " coins");
-          megaCost = parseInt(localStorage.getItem("megaCost")) || 60;
-critChance = parseFloat(localStorage.getItem("critChance")) || 0;
-critCost = parseInt(localStorage.getItem("critCost")) || 40;
-critMult = parseFloat(localStorage.getItem("critMult")) || 1.5;
-critMultCost = parseInt(localStorage.getItem("critMultCost")) || 75;
-          totalTaps = parseInt(localStorage.getItem("totalTaps")) || 0;
+          showToast("Offline: +" + offlineCoins);
         }
       }
 
@@ -634,222 +473,154 @@ critMultCost = parseInt(localStorage.getItem("critMultCost")) || 75;
     // ======================
     // Gameplay
     // ======================
-    function tap() {
+    function tap(){
       totalTaps += 1;
-  // base gain
-  let gained = Math.floor(coinsPerTap * prestigeBonus);
 
-  // crit roll
-  const isCrit = Math.random() < critChance;
-  if (isCrit) {
-    gained = Math.floor(gained * critMult);
-  }
+      let gained = Math.floor(coinsPerTap * prestigeBonus);
+      const isCrit = Math.random() < critChance;
+      if (isCrit) gained = Math.floor(gained * critMult);
 
-  coins += gained;
+      coins += gained;
 
-  pressAnim();
-  tapWrap.classList.add("pulse");
-  setTimeout(()=> tapWrap.classList.remove("pulse"), 60);
+      pressAnim();
+      tapWrap.classList.add("pulse");
+      setTimeout(()=> tapWrap.classList.remove("pulse"), 60);
 
-  floatText((isCrit ? "CRIT! +" : "+") + gained);
+      floatText((isCrit ? "CRIT! +" : "+") + gained);
 
-  updateUI();
-  saveGame();
+      updateUI();
+      saveGame();
+      checkAchievements();
     }
 
-    function buyMega() {
-  if (coins < megaCost) { showToast("Need " + megaCost + " coins"); return; }
-  coins -= megaCost;
-  coinsPerTap += 5;
-  megaCost = Math.floor(megaCost * 1.35) + 10;
-
-  showToast("Mega +5 power!");
-  updateUI();
-  saveGame();
-      checkAchievements();
-}
-
-function buyCritChance() {
-  if (critChance >= 0.50) { showToast("Crit chance maxed"); return; }
-  if (coins < critCost) { showToast("Need " + critCost + " coins"); return; }
-
-  coins -= critCost;
-  critChance = Math.min(0.50, +(critChance + 0.01).toFixed(2));
-  critCost = Math.floor(critCost * 1.45) + 10;
-
-  showToast("Crit chance +" + Math.round(critChance * 100) + "%");
-  updateUI();
-  saveGame();
-}
-
-function buyCritMult() {
-  if (critMult >= 5) { showToast("Crit mult maxed"); return; }
-  if (coins < critMultCost) { showToast("Need " + critMultCost + " coins"); return; }
-
-  coins -= critMultCost;
-  critMult = +(critMult + 0.25).toFixed(2);
-  critMultCost = Math.floor(critMultCost * 1.5) + 15;
-
-  showToast("Crit mult x" + critMult);
-  updateUI();
-  saveGame();
-}
-
-    function buyUpgrade() {
-      if (coins < upgradeCost) {
-        showToast("Need " + upgradeCost + " coins");
-        return;
-      }
+    function buyUpgrade(){
+      if (coins < upgradeCost){ showToast("Need " + upgradeCost); return; }
       coins -= upgradeCost;
       coinsPerTap += 1;
       upgradeCost += 10;
-
       showToast("Tap power +1");
-      updateUI();
-      saveGame();
-      checkAchievements();
+      updateUI(); saveGame(); checkAchievements();
     }
 
-    function buyAuto() {
-      if (coins < 25) {
-        showToast("Need 25 coins");
-        return;
-      }
+    function buyMega(){
+      if (coins < megaCost){ showToast("Need " + megaCost); return; }
+      coins -= megaCost;
+      coinsPerTap += 5;
+      megaCost = Math.floor(megaCost * 1.35) + 10;
+      showToast("Mega +5!");
+      updateUI(); saveGame(); checkAchievements();
+    }
+
+    function buyCritChance(){
+      if (critChance >= 0.50){ showToast("Crit maxed"); return; }
+      if (coins < critCost){ showToast("Need " + critCost); return; }
+      coins -= critCost;
+      critChance = Math.min(0.50, +(critChance + 0.01).toFixed(2));
+      critCost = Math.floor(critCost * 1.45) + 10;
+      showToast("Crit " + Math.round(critChance*100) + "%");
+      updateUI(); saveGame(); checkAchievements();
+    }
+
+    function buyCritMult(){
+      if (critMult >= 5){ showToast("Mult maxed"); return; }
+      if (coins < critMultCost){ showToast("Need " + critMultCost); return; }
+      coins -= critMultCost;
+      critMult = +(critMult + 0.25).toFixed(2);
+      critMultCost = Math.floor(critMultCost * 1.5) + 15;
+      showToast("Crit x" + critMult);
+      updateUI(); saveGame();
+    }
+
+    function buyAuto(){
+      if (coins < 25){ showToast("Need 25"); return; }
       coins -= 25;
       coinsPerSecond += 1;
-
-      showToast("+1 coin/sec");
-      updateUI();
-      saveGame();
-      checkAchievements();
+      showToast("+1/sec");
+      updateUI(); saveGame(); checkAchievements();
     }
 
-    function prestige() {
-  if (coins < 100) {
-    showToast("Need 100 coins");
-    return;
-  }
-      function checkAchievements(){
-  // taps
-  if (totalTaps >= 1) unlockAchievement("first_tap");
-  if (totalTaps >= 100) unlockAchievement("tapper_100");
+    // ======================
+    // Prestige confirm
+    // ======================
+    let pendingConfirm = null;
 
-  // coins
-  if (coins >= 1000) unlockAchievement("coins_1k");
-
-  // cps
-  if (coinsPerSecond >= 10) unlockAchievement("cps_10");
-
-  // tap power
-  if (coinsPerTap >= 25) unlockAchievement("power_25");
-
-  // prestige
-  if (prestigePoints >= 1) unlockAchievement("first_prest");
-      }
-
-  const nextPoints = prestigePoints + 1;
-  const nextBonus = 1 + nextPoints * 0.1;
-
-  openConfirm(
-    "Reset coins, tap power, and auto income.\n" +
-    "You will gain +1 Prestige Point.\n" +
-    "New bonus: x" + nextBonus.toFixed(2),
-    () => {
-      // DO THE PRESTIGE FOR REAL
-      prestigePoints += 1;
-      prestigeBonus = 1 + prestigePoints * 0.1;
-
-      // RESET SECTION
-      coins = 0;
-      coinsPerTap = 1;
-      coinsPerSecond = 0;
-      upgradeCost = 10;
-
-      // If you added these systems, keep these resets too:
-      if (typeof megaCost !== "undefined") {
-        megaCost = 60;
-        critChance = 0;
-        critCost = 40;
-        critMult = 1.5;
-        critMultCost = 75;
-      }
-
-      showToast("Prestige! Bonus up");
-      updateUI();
-      saveGame();
+    function openConfirm(message, onYes){
+      pendingConfirm = onYes;
+      confirmText.textContent = message;
+      confirmOverlay.style.display = "flex";
+      confirmOverlay.style.pointerEvents = "auto";
     }
-  );
+    function closeConfirm(){
+      confirmOverlay.style.display = "none";
+      confirmOverlay.style.pointerEvents = "none";
+      pendingConfirm = null;
+    }
+    function confirmYes(){
+      if (pendingConfirm) pendingConfirm();
+      closeConfirm();
     }
 
-    // Auto income tick
-    setInterval(() => {
-      if (coinsPerSecond <= 0) return;
-      coins += Math.floor(coinsPerSecond * prestigeBonus);
-      updateUI();
-      saveGame();
-    }, 1000);
+    function prestige(){
+      if (coins < 100){ showToast("Need 100"); return; }
 
-    // Fake ad refresh
-    setInterval(() => {
-      adBox.textContent = "Ad refreshed";
-    }, 15000);
+      const nextPoints = prestigePoints + 1;
+      const nextBonus = 1 + nextPoints * 0.1;
 
-    function watchAd() {
+      openConfirm(
+        "Reset coins, tap power, and auto.\nGain +1 Prestige.\nNew bonus: x" + nextBonus.toFixed(2),
+        () => {
+          prestigePoints += 1;
+          prestigeBonus = 1 + prestigePoints * 0.1;
+
+          // RESET
+          coins = 0;
+          coinsPerTap = 1;
+          coinsPerSecond = 0;
+          upgradeCost = 10;
+
+          megaCost = 60;
+          critChance = 0;
+          critCost = 40;
+          critMult = 1.5;
+          critMultCost = 75;
+
+          showToast("Prestige complete!");
+          updateUI(); saveGame(); checkAchievements();
+        }
+      );
+    }
+
+    // ======================
+    // Ads (fake)
+    // ======================
+    setInterval(()=>{ adBox.textContent = "Ad refreshed"; }, 15000);
+
+    function watchAd(){
       showToast("Watching ad…");
-
-      setTimeout(() => {
+      setTimeout(()=>{
         let reward = coinsPerSecond * 30 + coinsPerTap * 10;
         if (reward < 10) reward = 10;
-
         coins += reward;
-        showToast("Ad reward: +" + reward);
-        updateUI();
-        saveGame();
+        showToast("Ad +" + reward);
+        updateUI(); saveGame(); checkAchievements();
       }, 2500);
     }
 
     // ======================
-    // PWA: service worker + install button
+    // Achievements
     // ======================
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js").catch(()=>{});
-    }
+    const ACH_KEY = "achievements_v1";
+    let achievements = {};
 
-    let deferredPrompt = null;
-    const installBtn = document.getElementById("installBtn");
+    const ACH = [
+      { id:"first_tap",  name:"First Tap",      desc:"Tap 1 time.",                 reward: 10 },
+      { id:"tapper_100", name:"Getting Warm",   desc:"Tap 100 times.",              reward: 50 },
+      { id:"coins_1k",   name:"Pocket Change",  desc:"Reach 1,000 coins.",          reward: 75 },
+      { id:"cps_10",     name:"Passive Income", desc:"Reach 10 coins per second.",  reward: 120 },
+      { id:"power_25",   name:"Milestone 1",    desc:"Reach 25 coins per tap.",     reward: 150 },
+      { id:"first_prest",name:"Reborn",         desc:"Prestige 1 time.",            reward: 250 }
+    ];
 
-    window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = "block";
-    });
-
-    installBtn.addEventListener("click", async () => {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      installBtn.style.display = "none";
-    });
-
-    achBtn.addEventListener("click", () => {
-  renderAchievements();
-  achOverlay.style.display = "flex";
-});
-
-achClose.addEventListener("click", () => {
-  achOverlay.style.display = "none";
-});
-
-achOverlay.addEventListener("click", (e) => {
-  if (e.target === achOverlay) achOverlay.style.display = "none";
-});
-
-    // Start
-    loadGame();
-    loadAchievements();
-renderAchievements();
-checkAchievements();
-  </script>
-</body>
-</html>
+    function loadAchievements(){
+      try { achievements = JSON.parse(localStorage.getItem(ACH_KEY)) || {}; }
+      
