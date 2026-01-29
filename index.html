@@ -67,11 +67,11 @@
       touch-action: manipulation;
       transform: translateZ(0);
       transition: transform 0.06s ease;
+      pointer-events: auto;
     }
 
     .tap-btn.pressed{ transform: scale(0.98); }
 
-    /* skins */
     .tap-btn.tier0 { background: #f5f5f5; color:#111; }
     .tap-btn.tier1 { background: #e6fff3; color:#0b2; box-shadow: 0 0 0 2px rgba(120,255,190,0.22), 0 16px 40px rgba(0,0,0,0.55); }
     .tap-btn.tier2 { background: #e9f2ff; color:#2a6cff; box-shadow: 0 0 28px rgba(70,140,255,0.35), 0 16px 40px rgba(0,0,0,0.6); }
@@ -154,6 +154,7 @@
       background: var(--btn);
       color: var(--btnText);
       box-shadow: 0 10px 26px rgba(0,0,0,0.35);
+      pointer-events: auto;
     }
 
     .shop button:disabled{
@@ -181,16 +182,27 @@
       text-overflow: ellipsis;
     }
     #toast.show{ opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+    #errBox{
+      position:fixed; top:10px; left:10px; right:10px;
+      background:#8b0000; color:#fff; padding:10px 12px;
+      border-radius:12px; font-size:13px; line-height:1.25;
+      z-index:100000; display:none;
+      text-align:left;
+      white-space:pre-wrap;
+      pointer-events:auto;
+    }
   </style>
 </head>
 
 <body>
 
-<button onclick="alert('tap works')"
-        style="font-size:30px;padding:40px;">
-  TAP TEST
-</button>
-  
+  <div id="errBox"></div>
+
+  <button onclick="alert('tap works')" style="font-size:30px;padding:24px;border-radius:14px;">
+    TAP TEST
+  </button>
+
   <h1>Tiny Tap Game</h1>
 
   <div class="stats">
@@ -212,37 +224,14 @@
   </div>
 
   <div class="shop">
-    <button id="upgradeBtn" onclick="buyUpgrade()">
-      Upgrade Tap (<span id="upgradeCost">10</span> coins)
-    </button>
-
-    <button id="megaBtn" onclick="buyMega()">
-      Mega Tap (+5 power) (<span id="megaCost">60</span> coins)
-    </button>
-
-    <button id="critBtn" onclick="buyCritChance()">
-      Crit Chance +1% (<span id="critCost">40</span> coins)
-    </button>
-
-    <button id="critMultBtn" onclick="buyCritMult()">
-      Crit Mult +0.25x (<span id="critMultCost">75</span> coins)
-    </button>
-
-    <button id="autoBtn" onclick="buyAuto()">
-      Auto Income (+1/sec) (25 coins)
-    </button>
-
-    <button id="prestigeBtn" onclick="prestige()">
-      Prestige (Reset for +1 bonus)
-    </button>
-
-    <button id="adBtn" onclick="watchAd()">
-      Watch Ad → Get Bonus Coins
-    </button>
-
-    <button id="achBtn" type="button" onclick="openAchievements()">
-      Achievements
-    </button>
+    <button id="upgradeBtn" onclick="buyUpgrade()">Upgrade Tap (<span id="upgradeCost">10</span> coins)</button>
+    <button id="megaBtn" onclick="buyMega()">Mega Tap (+5 power) (<span id="megaCost">60</span> coins)</button>
+    <button id="critBtn" onclick="buyCritChance()">Crit Chance +1% (<span id="critCost">40</span> coins)</button>
+    <button id="critMultBtn" onclick="buyCritMult()">Crit Mult +0.25x (<span id="critMultCost">75</span> coins)</button>
+    <button id="autoBtn" onclick="buyAuto()">Auto Income (+1/sec) (25 coins)</button>
+    <button id="prestigeBtn" onclick="prestige()">Prestige (Reset for +1 bonus)</button>
+    <button id="adBtn" onclick="watchAd()">Watch Ad → Get Bonus Coins</button>
+    <button id="achBtn" type="button" onclick="openAchievements()">Achievements</button>
   </div>
 
   <div id="toast"></div>
@@ -250,7 +239,8 @@
   <!-- Achievements overlay -->
   <div id="achOverlay" style="
     position:fixed; inset:0;
-    display:none; pointer-events:none;
+    display:none;
+    pointer-events:none;
     align-items:center; justify-content:center;
     background:rgba(0,0,0,0.70);
     z-index:99998; padding:16px;">
@@ -270,7 +260,8 @@
 
   <!-- Prestige confirm overlay -->
   <div id="confirmOverlay" style="
-    position:fixed; inset:0; display:none; pointer-events:none;
+    position:fixed; inset:0; display:none;
+    pointer-events:none;
     align-items:center; justify-content:center;
     background:rgba(0,0,0,0.65); z-index:99999; padding:16px;">
     <div style="
@@ -290,6 +281,13 @@
   </div>
 
   <script>
+    // Show JS errors on screen (VERY helpful on mobile)
+    const errBox = document.getElementById("errBox");
+    window.addEventListener("error", (e) => {
+      errBox.style.display = "block";
+      errBox.textContent = "JS ERROR:\n" + (e.message || e.error || "Unknown") + "\n\n" + (e.filename || "") + ":" + (e.lineno || "");
+    });
+
     // ======================
     // Game state
     // ======================
@@ -535,6 +533,7 @@
       critMultCost = Math.floor(critMultCost * 1.5) + 15;
       showToast("Crit x" + critMult);
       updateUI(); saveGame();
+      checkAchievements();
     }
 
     function buyAuto(){
@@ -578,7 +577,6 @@
           prestigePoints += 1;
           prestigeBonus = 1 + prestigePoints * 0.1;
 
-          // RESET
           coins = 0;
           coinsPerTap = 1;
           coinsPerSecond = 0;
@@ -615,107 +613,68 @@
     // ======================
     // Achievements
     // ======================
-    const ACH_KEY = "achievements_v1";
+        const ACH_KEY = "achievements_v1";
     let achievements = {};
 
     const ACH = [
-      { id:"first_tap",  name:"First Tap",      desc:"Tap 1 time.",                 reward: 10 },
-      { id:"tapper_100", name:"Getting Warm",   desc:"Tap 100 times.",              reward: 50 },
-      { id:"coins_1k",   name:"Pocket Change",  desc:"Reach 1,000 coins.",          reward: 75 },
-      { id:"cps_10",     name:"Passive Income", desc:"Reach 10 coins per second.",  reward: 120 },
-      { id:"power_25",   name:"Milestone 1",    desc:"Reach 25 coins per tap.",     reward: 150 },
-      { id:"first_prest",name:"Reborn",         desc:"Prestige 1 time.",            reward: 250 }
+      { id:"first_tap",  name:"First Tap",      desc:"Tap 1 time.",                 reward: 10,  check:()=> totalTaps >= 1 },
+      { id:"tapper_100", name:"Getting Warm",   desc:"Tap 100 times.",              reward: 50,  check:()=> totalTaps >= 100 },
+      { id:"coins_1k",   name:"Pocket Change",  desc:"Reach 1,000 coins.",          reward: 75,  check:()=> coins >= 1000 },
+      { id:"cps_10",     name:"Passive Income", desc:"Reach 10 coins per second.",  reward: 120, check:()=> coinsPerSecond >= 10 },
+      { id:"power_25",   name:"Milestone 1",    desc:"Reach 25 coins per tap.",     reward: 150, check:()=> coinsPerTap >= 25 },
+      { id:"first_prest",name:"Reborn",         desc:"Prestige 1 time.",            reward: 250, check:()=> prestigePoints >= 1 }
     ];
 
     function loadAchievements(){
-      try { achievements = JSON.parse(localStorage.getItem(ACH_KEY)) || {}; }
-
+      try { achievements = JSON.parse(localStorage.getItem(ACH_KEY) || "{}"); }
+      catch { achievements = {}; }
+    }
     function saveAchievements(){
       localStorage.setItem(ACH_KEY, JSON.stringify(achievements));
     }
-    function isUnlocked(id){ return !!achievements[id]; }
 
-    function unlockAchievement(id){
-      if (isUnlocked(id)) return;
-      const a = ACH.find(x => x.id === id);
-      achievements[id] = { when: Date.now() };
+    function grantAchievement(a){
+      achievements[a.id] = true;
+      coins += a.reward;
+      showToast("Achievement: " + a.name + " (+" + a.reward + ")");
       saveAchievements();
-
-      if (a && a.reward){
-        coins += a.reward;
-        showToast("Achievement: " + a.name + " (+" + a.reward + ")");
-      } else if (a){
-        showToast("Achievement: " + a.name);
-      }
-
-      renderAchievements();
-      updateUI();
       saveGame();
-    }
-
-    function renderAchievements(){
-      achList.innerHTML = "";
-
-      let unlockedCount = 0;
-      for (const a of ACH) if (isUnlocked(a.id)) unlockedCount++;
-
-      const header = document.createElement("div");
-      header.style.opacity = "0.9";
-      header.style.fontSize = "13px";
-      header.textContent = "Unlocked: " + unlockedCount + " / " + ACH.length;
-      achList.appendChild(header);
-
-      for (const a of ACH){
-        const unlocked = isUnlocked(a.id);
-
-        const row = document.createElement("div");
-        row.style.padding = "12px";
-        row.style.borderRadius = "14px";
-        row.style.background = unlocked ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)";
-        row.style.border = "1px solid rgba(255,255,255,0.06)";
-
-        const top = document.createElement("div");
-        top.style.display = "flex";
-        top.style.alignItems = "center";
-        top.style.justifyContent = "space-between";
-        top.style.gap = "10px";
-
-        const title = document.createElement("div");
-        title.style.fontWeight = "800";
-        title.textContent = (unlocked ? "✅ " : "🔒 ") + a.name;
-
-        const reward = document.createElement("div");
-        reward.style.fontSize = "12px";
-        reward.style.opacity = "0.9";
-        reward.textContent = "+" + a.reward;
-
-        top.appendChild(title);
-        top.appendChild(reward);
-
-        const desc = document.createElement("div");
-        desc.style.marginTop = "6px";
-        desc.style.fontSize = "13px";
-        desc.style.opacity = "0.9";
-        desc.textContent = a.desc;
-
-        row.appendChild(top);
-        row.appendChild(desc);
-
-        achList.appendChild(row);
-      }
+      updateUI();
     }
 
     function checkAchievements(){
-      if (totalTaps >= 1) unlockAchievement("first_tap");
-      if (totalTaps >= 100) unlockAchievement("tapper_100");
-      if (coins >= 1000) unlockAchievement("coins_1k");
-      if (coinsPerSecond >= 10) unlockAchievement("cps_10");
-      if (coinsPerTap >= 25) unlockAchievement("power_25");
-      if (prestigePoints >= 1) unlockAchievement("first_prest");
+      for (const a of ACH){
+        if (!achievements[a.id] && a.check()){
+          grantAchievement(a);
+        }
+      }
+      renderAchievementsList();
+    }
+
+    function renderAchievementsList(){
+      if (!achList) return;
+      achList.innerHTML = "";
+      for (const a of ACH){
+        const done = !!achievements[a.id];
+        const item = document.createElement("div");
+        item.style.padding = "12px";
+        item.style.borderRadius = "14px";
+        item.style.background = done ? "rgba(120,255,190,0.10)" : "rgba(255,255,255,0.06)";
+        item.style.border = done ? "1px solid rgba(120,255,190,0.25)" : "1px solid rgba(255,255,255,0.08)";
+        item.innerHTML = `
+          <div style="font-weight:900; font-size:16px; margin-bottom:4px;">
+            ${done ? "✅ " : "⬜ "} ${a.name}
+          </div>
+          <div style="color:rgba(255,255,255,0.85); font-size:13px; line-height:1.3;">
+            ${a.desc} <span style="opacity:0.85;">Reward: ${a.reward}</span>
+          </div>
+        `;
+        achList.appendChild(item);
+      }
     }
 
     function openAchievements(){
-      renderAchievements();
+      renderAchievementsList();
       achOverlay.style.display = "flex";
       achOverlay.style.pointerEvents = "auto";
     }
@@ -725,22 +684,24 @@
     }
 
     // ======================
-    // Timers
+    // Game tick
     // ======================
-    setInterval(() => {
-      if (coinsPerSecond <= 0) return;
-      coins += Math.floor(coinsPerSecond * prestigeBonus);
-      updateUI();
-      saveGame();
-      checkAchievements();
+    setInterval(()=>{
+      if (coinsPerSecond > 0){
+        coins += Math.floor(coinsPerSecond * prestigeBonus);
+        updateUI();
+        saveGame();
+        checkAchievements();
+      }
     }, 1000);
 
+    // ======================
     // Start
-    loadGame();
+    // ======================
     loadAchievements();
-    renderAchievements();
+    loadGame();
+    updateUI();
     checkAchievements();
   </script>
 </body>
 </html>
-      
